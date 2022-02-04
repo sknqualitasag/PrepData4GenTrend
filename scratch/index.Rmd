@@ -1,0 +1,193 @@
+---
+title: "Genetische Trends mit RShiny basierend auf log-File"
+date: "12.24.2021"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Kontekt
+
+Bei jeder Basis Verschiebung, jeweils während der Routine Zuchtwertschätzung von April, werden die genetische Trends zu Braunvieh Schweiz geliefert. Diese genetische Trends sind [hier](https://homepage.braunvieh.ch/genetische-trends/) ersichtlicht.
+
+# Ziel dieses Dokument
+
+Der Fachbereich Zuchtwertschätzung möchte eine kundenfreundlichere Ansicht für die genetische Trends via das Tools [RShiny](https://shiny.rstudio.com/) anbieten. Dieses Tools bitte nicht nur eine interaktivere Ansicht, sondern auch die Automatisierung der Herstellung von den genetische Trends, welche die Prozesse innerhalb vom Fachbereich Zuchtwertschätzung optimiert.
+
+Die Veröffentlichung wird via gemietete Server stattfinden. Dort hat den Fachbereich Zuchtwertschätzung die Kontrolle über die Plattform und kann die nötigen Daten für die Applikation verschieben.
+
+Anschliessend wird der Zuchtverband einen Link ermittelt, welches direkt auf ihre Webseite eingebettet werden kann. 
+
+Diesen Dokument dient als Test.
+
+# Ansicht via RShiny
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+# Load requiered packages
+library(dplyr)
+library(ggplot2)
+```
+
+```{r, include=FALSE}
+### # Extract information from the log-file
+### # ------------------------------------------------------------------------------------------
+# Path to the log-file to be readen
+s_log_path <- "genTrend_scs_ym0.log"
+# Read the file line-by-line
+con <- file(description = s_log_path)
+vec_log_result <- readLines(con = con)
+close(con)
+
+# Part to extract from the log-file
+s_result_upper <- "Start: Genetische Trends nach Basisdefinitionen (ohne Geburtsjahre) berechnen"
+s_result_lower <- "Ende: Genetische Trends nach Basisdefinitionen (ohne Geburtsjahre) berechnen"
+n_index_upper <- grep(pattern = s_result_upper, vec_log_result, fixed = TRUE)
+n_index_lower <- grep(pattern = s_result_lower, vec_log_result, fixed = TRUE)
+
+# Exclude everything outside of result area
+vec_log_result <- vec_log_result[n_index_upper:n_index_lower]
+
+## Build search taggs
+#tbl_search <- tibble::tibble(ExtractForBreed = c("BV/BS",
+#                                                 "OB"),
+#                             ExtractForTrait = c("scs",
+#                                                 "scs"),
+#                             SearchPatternStart = c(" --> Nur Tiere mit Rassecode BV oder BS",
+#                                                    " --> Nur Tiere mit Rassecode OB"),
+#                             SearchPatternEnd = c("Merkmal: scs (OB-Basis)",
+#                                                  "Ende: Genetische Trends nach Basisdefinitionen (ohne Geburtsjahre) berechnen"),
+#                             IndexOffsetStart = c(2,
+#                                                  2),
+#                             IndexOffSetEnd = c(-2,
+#                                                -2))
+# Read default parameter to search taggs or for the plot
+s_par <- "DefaultParameter.txt"
+tbl_search <- readr::read_delim(file = s_par, delim = ";")
+
+# Extract the pattern
+tbl_result <- NULL
+#l_result <- NULL
+for (idx in 1:nrow(tbl_search)){
+
+  n_cur_trait_idx <- grep(pattern = tbl_search$SearchPatternStart[idx], vec_log_result, fixed = TRUE) + tbl_search$IndexOffsetStart[idx]
+  n_end_cur_trait_idx <- grep(pattern = tbl_search$SearchPatternEnd[idx], vec_log_result, fixed = TRUE) + tbl_search$IndexOffSetEnd[idx]
+  
+  # Surch header
+  s_header_result <- vec_log_result[n_cur_trait_idx-1]
+  vec_header_result <- unlist(strsplit(s_header_result, split = "\\s+"))
+  
+  # Surch Breed
+  vec_breed_result <- tbl_search$ExtractForBreed[idx]
+  
+  # Surch Trait
+  vec_trait_result <- tbl_search$ExtractForTrait[idx]
+  
+  # Extract pattern with start and end from the tbl_search information
+  for(lidx in n_cur_trait_idx:n_end_cur_trait_idx){
+    
+      s_cur_result <- vec_log_result[n_cur_trait_idx]
+      vec_cur_result <- unlist(strsplit(s_cur_result, split = "\\s+"))
+      # If available, remove empty vector at the beginning
+      if(vec_cur_result[1]==""){
+        vec_cur_result <- vec_cur_result[2:(length(vec_cur_result))]
+      }
+      
+      # Vector to matrix
+      mat_cur_result <- matrix(vec_cur_result, nrow = 1)
+      colnames(mat_cur_result) <- vec_header_result
+      
+      # Matrix to tibble
+      tbl_cur_result <- tibble::as_tibble(mat_cur_result)
+      tbl_cur_result$Breed <- vec_breed_result
+      tbl_cur_result$Trait <- vec_trait_result
+
+      # Transform the typ
+      tbl_cur_result[,"Geburtsjahr"] <- as.numeric(tbl_cur_result[,"Geburtsjahr"])
+      tbl_cur_result[,"n_zw"] <- as.numeric(tbl_cur_result[,"n_zw"])
+      tbl_cur_result[,"mean_zw"] <- as.numeric(tbl_cur_result[,"mean_zw"])
+
+
+      # Extension
+      if (is.null(tbl_result)){
+        tbl_result <- tbl_cur_result
+      } else {
+        tbl_result <- dplyr::bind_rows(tbl_result, tbl_cur_result)
+      }
+      
+      # Next step in the loop
+      n_cur_trait_idx <- n_cur_trait_idx + 1
+
+  }
+  
+  ## Create a list with different breed. Each breed has a different tibble
+  #l_result <- NULL
+  #for(bidx in 1:length(vec_breed_result)){
+  #  l_result[[vec_breed_result[[bidx]]]] <- tbl_result
+  #}
+  ## To get information from a list
+  ## l_result$OB$Geburtsjahr or l_result[["OB"]]["Geburtsjahr"]
+  
+}
+```
+
+```{r, echo=FALSE}
+# RShiny
+# Define UI --------------------------------------------------------------------
+sidebarLayout(
+  sidebarPanel(
+    selectInput("Trait","Merkmal:",
+                choices = c(unique(tbl_result$Trait))),
+    selectInput("Breed","Rasse:",
+                choices = c(unique(tbl_result$Breed)))
+  ),
+  mainPanel(
+    plotOutput("plot")
+  )
+)
+
+# Define server ----------------------------------------------------------------
+# Output Plot
+output$plot <- renderPlot({
+  
+  # Filter data based on selection criteria
+  dfToUse <- tbl_result
+  dfToUse <- dfToUse %>% filter(Trait == input$Trait)
+  dfToUse <- dfToUse %>% filter(Breed == input$Breed)
+  
+  # Select Birth year to plot
+  maxBY<-max(dfToUse[,"Geburtsjahr"])
+  removeFirstBY <- tbl_search %>% filter(ExtractForBreed == input$Breed) %>% filter(ExtractForTrait == input$Trait) %>% select(FirstYearToPlot_ym)
+  removeLastBY <- tbl_search %>% filter(ExtractForBreed == input$Breed) %>% filter(ExtractForTrait == input$Trait) %>% select(LastYearToPlot_ym)
+
+  # Plot
+  ggplot(data = dfToUse, mapping = aes(x = Geburtsjahr, y = mean_zw)) +
+    geom_point(aes(size = n_zw), alpha = 1/3) +
+    geom_smooth(se = TRUE, method="loess") +
+    #coord_cartesian(xlim = c(maxBY-15, maxBY)) +
+    coord_cartesian(xlim = c(maxBY-removeFirstBY, maxBY-removeLastBY)) +
+    labs(x = "Year of birth", y = "Mean EBV") +
+    ggtitle(paste("genetic Trend"))
+})
+```
+
+# Zusammenfassung
+"tbl_search" ist wie ein Parameter-File, wo die spezifische Info eingetragen werden. 
+Mit dem wird aus dem genTrend_{trait}_ym0.log die Daten extrahiert und geplottet.
+
+# Backlog: offene Punkte
+
+* sind die genTrend_{trait}_ym0.log immer gleich aufgebaut ?
+* genTrend_{trait}_ym0.log ist alles auf BS-Basis gestellt, für OB ?
+
+
+
+```{r, echo=FALSE}
+# Qualitas Logo auf Fusszeile
+div(img(src = "www/Qualitas Logo dark bg-white square.png",
+        alt = "Qualitas logo",
+        height = "50px"),
+    style="text-align: center;")
+```
