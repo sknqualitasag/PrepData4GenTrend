@@ -10,6 +10,7 @@
 #' @importFrom dplyr inner_join
 #' @importFrom dplyr select
 #' @importFrom dplyr left_join
+#' @importFrom dplyr case_when
 #'
 #' @return tbl_result resulting tibble with information extracted from genTrend log-file
 #' @export correctBasis4genTrend
