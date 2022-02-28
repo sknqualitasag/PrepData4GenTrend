@@ -1,0 +1,7 @@
+Trait;Designation;FirstYearToPlot_ym;LastYearToPlot_ym;minEbvToPlot;maxEbvToPlot;TraitGroup
+"nrk";"Non-Return-Rate bei Kühen";20;4;90;110;"Fruchtbarkeit"
+"nrr";"Non-Return-Rate bei Rindern";20;4;90;110;"Fruchtbarkeit"
+"raz";"Rastzeit";20;4;90;110;"Fruchtbarkeit"
+"vzk";"Verzögerungszeit bei Kühen";20;4;90;110;"Fruchtbarkeit"
+"vzr";"Verzögerungszeit bei Rindern";20;4;90;110;"Fruchtbarkeit"
+"scs";"Zellzahl";20;4;90;110;"Produktion"

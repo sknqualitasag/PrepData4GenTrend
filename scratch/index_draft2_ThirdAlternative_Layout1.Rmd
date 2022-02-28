@@ -1,0 +1,128 @@
+---
+title: "Genetische Trends von Braunvieh Schweiz"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+# Load requiered packages
+library(dplyr)
+library(ggplot2)
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+# Path to read the information needed for the plot
+s_genTrend <- "GeneticTrendForRShiny_demo.csv"
+tbl_genTrend <- readr::read_delim(file = s_genTrend, delim = ";")
+s_defaultPar <- "DefaultParameterGeneticTrendRShiny.csv"
+tbl_defaultPar <- readr::read_delim(file = s_defaultPar, delim = ";")
+
+# Merge
+tbl_genTrend <- tbl_genTrend %>% inner_join(tbl_defaultPar, by = c("Trait" = "Trait"))
+tbl_genTrend <- tbl_genTrend %>% select(-c("FirstYearToPlot_ym","LastYearToPlot_ym","minEbvToPlot","maxEbvToPlot"))
+```
+
+```{r, echo=FALSE}
+# RShiny
+# Define UI --------------------------------------------------------------------
+sidebarLayout(
+  sidebarPanel(
+    selectInput("TraitGroup","Bitte wählen Sie eine Merkmalsgruppe:",
+                choices = c(unique(tbl_genTrend$TraitGroup))),
+    selectInput("Breed","Bitte wählen Sie eine Population:",
+                choices = c(unique(tbl_genTrend$Breed))),
+    downloadButton("down",label = "Download Grafik")
+  ),
+  mainPanel(
+    plotOutput("plot", width = "140%", height = "800px")
+  )
+)
+
+# Define server ----------------------------------------------------------------
+# Output Plot
+output$plot <- renderPlot({
+  
+  # Filter data based on selection criteria
+  dfToUse <- tbl_genTrend
+  dfToUse <- dfToUse %>% filter(TraitGroup == input$TraitGroup)
+  dfToUse <- dfToUse %>% filter(Breed == input$Breed)
+  
+  # Select Birth year to plot
+  maxBY<-max(dfToUse[,"Geburtsjahr"])
+  # Define Axis relative to the TraitGroup
+  removeFirstBY <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(FirstYearToPlot_ym)
+  removeLastBY <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(LastYearToPlot_ym)
+  StartEBV <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(minEbvToPlot)
+  EndEBV <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(maxEbvToPlot)
+  
+  # Plot
+  ggplot(data = dfToUse, mapping = aes(x = Geburtsjahr, y = mean_zw)) +
+    geom_line(aes(color=Designation), size = 1.25) +
+    coord_cartesian(xlim = c(maxBY-removeFirstBY$FirstYearToPlot_ym[1], maxBY-removeLastBY$LastYearToPlot_ym[1]),
+                  ylim = c(StartEBV$minEbvToPlot[1],EndEBV$maxEbvToPlot[1])) +
+      labs(x = "Geburtsjahr",
+       y = "Zuchtwert",
+       title = "Genetische Trends",
+       subtitle = paste("Zuchwerte sind auf der Rasse Basis",sep = " ",format(Sys.Date(), "%Y")),
+       caption = "(c) Braunvieh Schweiz") +
+    theme(legend.title = element_blank(),
+        legend.position = "bottom",
+        axis.title = element_text(size = 18),
+        plot.title = element_text(size = 18),
+        plot.caption = element_text(hjust = 0),
+        axis.text.x = element_text(angle = 50, vjust = 0.5),
+        axis.text = element_text(size = 14),
+        legend.text = element_text(size = 14)) +
+    scale_x_continuous(breaks = seq(maxBY-removeFirstBY$FirstYearToPlot_ym[1],maxBY-removeLastBY$LastYearToPlot_ym[1], by = 1)) +
+    guides(color = guide_legend(nrow=3)) 
+})
+
+output$down <- downloadHandler(
+  filename = function(){
+    paste("GenetischeTrends_",input$TraitGroup,"_",input$Breed,".pdf", sep = "")
+  },
+  
+  content = function(file){
+    # Import the data from R
+    # File type
+    pdf(file)
+    
+    # plot
+    dfToUse <- tbl_genTrend
+    dfToUse <- dfToUse %>% filter(TraitGroup == input$TraitGroup)
+    dfToUse <- dfToUse %>% filter(Breed == input$Breed)
+    maxBY<-max(dfToUse[,"Geburtsjahr"])
+    removeFirstBY <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(FirstYearToPlot_ym)
+    removeLastBY <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(LastYearToPlot_ym)
+    StartEBV <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(minEbvToPlot)
+    EndEBV <- tbl_defaultPar %>% filter(TraitGroup == input$TraitGroup) %>% select(maxEbvToPlot)
+    ggplot(data = dfToUse, mapping = aes(x = Geburtsjahr, y = mean_zw)) +
+      geom_line(aes(color=Designation), size = 0.85) +
+      coord_cartesian(xlim = c(maxBY-removeFirstBY$FirstYearToPlot_ym[1], maxBY-removeLastBY$LastYearToPlot_ym[1]),
+                    ylim = c(StartEBV$minEbvToPlot[1],EndEBV$maxEbvToPlot[1])) +
+        labs(x = "Geburtsjahr",
+         y = "Zuchtwert",
+         title = "Genetische Trends",
+         subtitle = paste("Zuchwerte sind auf der Rasse Basis",sep = " ",format(Sys.Date(), "%Y")),
+         caption = "(c) Braunvieh Schweiz") +
+      theme(legend.title = element_blank(),
+          legend.position = "bottom",
+          axis.title = element_text(size = 18),
+          plot.title = element_text(size = 18),
+          plot.caption = element_text(hjust = 0),
+          axis.text.x = element_text(angle = 50, vjust = 0.5),
+          axis.text = element_text(size = 14),
+          legend.text = element_text(size = 14)) +
+      scale_x_continuous(breaks = seq(maxBY-removeFirstBY$FirstYearToPlot_ym[1],maxBY-removeLastBY$LastYearToPlot_ym[1], by = 1)) +
+      guides(color = guide_legend(nrow=3)) 
+
+    #close the connection
+    dev.off()
+    
+  }
+)
+```

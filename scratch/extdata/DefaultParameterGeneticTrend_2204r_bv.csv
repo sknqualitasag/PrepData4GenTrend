@@ -1,0 +1,13 @@
+Auswertungsrasse;ExtractForBreed;ExtractForTrait;SearchPatternStart;SearchPatternEnd;IndexOffsetStart;IndexOffSetEnd
+"bv";"BS";"scs";" --> Nur Tiere mit Rassecode BV oder BS";"Merkmal: scs (OB-Basis)";2;-2
+"bv";"OB";"scs";" --> Nur Tiere mit Rassecode OB";"Ende: Genetische Trends nach Basisdefinitionen (ohne Geburtsjahre) berechnen";2;-2
+"bv";"BS";"nrr";"Merkmal: nrr (BV/BS-Basis)";"Merkmal: vzr (BV/BS-Basis)";3;-2
+"bv";"BS";"vzr";"Merkmal: vzr (BV/BS-Basis)";"Merkmal: nrk (BV/BS-Basis)";3;-2
+"bv";"BS";"nrk";"Merkmal: nrk (BV/BS-Basis)";"Merkmal: vzk (BV/BS-Basis)";3;-2
+"bv";"BS";vzk;"Merkmal: vzk (BV/BS-Basis)";"Merkmal: raz (BV/BS-Basis)";3;-2
+"bv";"BS";"raz";"Merkmal: raz (BV/BS-Basis)";"Merkmal: nrr (OB-Basis)";3;-2
+"bv";"OB";"nrr";"Merkmal: nrr (OB-Basis)";"Merkmal: vzr (OB-Basis)";3;-2
+"bv";"OB";"vzr";"Merkmal: vzr (OB-Basis)";"Merkmal: nrk (OB-Basis)";3;-2
+"bv";"OB";"nrk";"Merkmal: nrk (OB-Basis)";"Merkmal: vzk (OB-Basis)";3;-2
+"bv";"OB";"vzk";"Merkmal: vzk (OB-Basis)";"Merkmal: raz (OB-Basis)";3;-2
+"bv";"OB";"raz";"Merkmal: raz (OB-Basis)";"Ende: Genetische Trends nach Basisdefinitionen (ohne Geburtsjahre) berechnen";3;-2
