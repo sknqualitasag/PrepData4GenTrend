@@ -4,7 +4,8 @@
 #' Correct with the breed constant the basis of the extracted genTrend log-info
 #'
 #' @param ps_input_tibble resulting tibble from the function extract4genTrend
-#' @param ps_par_default path to the parameter file
+#' @param ps_par_bdiff path to the parameter file with difference to the basis
+#' @param ps_output_csvfile resulting csv-file
 #' @importFrom magrittr %>%
 #' @importFrom dplyr mutate
 #' @importFrom dplyr inner_join
@@ -12,7 +13,7 @@
 #' @importFrom dplyr left_join
 #' @importFrom dplyr case_when
 #'
-#' @return tbl_result resulting tibble with information extracted from genTrend log-file
+#' @return tbl_res_diff resulting tibble with information extracted from genTrend log-file
 #' @export correctBasis4genTrend
 correctBasis4genTrend <- function(ps_input_tibble,
                                   ps_par_bdiff,
