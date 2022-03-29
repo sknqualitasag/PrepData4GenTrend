@@ -9,10 +9,12 @@ correctBasis4genTrend(ps_input_tibble, ps_par_bdiff, ps_output_csvfile)
 \arguments{
 \item{ps_input_tibble}{resulting tibble from the function extract4genTrend}
 
-\item{ps_par_default}{path to the parameter file}
+\item{ps_par_bdiff}{path to the parameter file with difference to the basis}
+
+\item{ps_output_csvfile}{resulting csv-file}
 }
 \value{
-tbl_result resulting tibble with information extracted from genTrend log-file
+tbl_res_diff resulting tibble with information extracted from genTrend log-file
 }
 \description{
 Correct with the breed constant the basis of the extracted genTrend log-info
