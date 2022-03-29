@@ -12,3 +12,22 @@ PrepData4GenTrend::correctBasis4genTrend(ps_input_tibble = tbl_test,
                                          ps_par_bdiff = s_par_bdiff,
                                          ps_output_csvfile = s_output_csvfile)
 
+
+s_input_csvfile <- "scratch/extdata/GeneticTrendForRShiny_cas.csv"
+s_evaluation <- "bv"
+s_output_csvfile <- "scratch/extdata/GeneticTrendForRShiny_cas_index.csv"
+
+build_calvingsurvival_index(ps_input_csvfile = s_input_csvfile,
+                            ps_evaluation = s_evaluation,
+                            ps_weighingfile = file.path(here::here(),"inst","extdata","weighing_factor2buildIndex.csv"),
+                            ps_output_csvfile = s_output_csvfile)
+
+
+s_input_csvfile <- "scratch/extdata/GeneticTrendForRShiny_fruchtbarkeit.csv"
+s_evaluation <- "bv"
+s_output_csvfile <- "scratch/extdata/GeneticTrendForRShiny_fbk_index.csv"
+
+build_fertility_index <- function(ps_input_csvfile = s_input_csvfile,
+                                  ps_evaluation = s_evaluation,
+                                  ps_weighingfile = file.path(here::here(),"inst","extdata","weighing_factor2buildIndex.csv"),
+                                  ps_output_csvfile = s_output_csvfile)
