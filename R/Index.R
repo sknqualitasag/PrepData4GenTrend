@@ -76,7 +76,7 @@ build_calvingsurvival_index <- function(ps_input_csvfile,
 #' @export build_fertility_index
 build_fertility_index <- function(ps_input_csvfile,
                                   ps_evaluation,
-                                  ps_weighingfile = file.path(here::here(),"inst","extdata","weighing_factor2buildIndex.csv"),
+                                  ps_weighingfile = system.file("extdata","weighing_factor2buildIndex.csv",package = "PrepData4GenTrend"),
                                   ps_output_csvfile){
 
   if(!file.exists(ps_input_csvfile)){
