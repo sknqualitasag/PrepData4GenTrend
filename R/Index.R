@@ -111,7 +111,7 @@ build_fertility_index <- function(ps_input_csvfile,
 
 
   # Write output
-  readr::write_delim(tbl_index, delim =";",file = ps_output_csvfile)
+  readr::write_delim(tbl_index, delim =";",path = ps_output_csvfile)
 
 
 }
